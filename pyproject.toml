@@ -5,9 +5,15 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "polars>=1.26.0",
     "streamlit>=1.42.2",
     "streamlit-flow-component>=1.6.1",
 ]
 
+[dependency-groups]
+dev = [
+    "jupyterlab>=4.3.6",
+]
+
 [tool.ruff]
-line_length = 100
+line-length = 100

@@ -1,125 +1,21 @@
-from uuid import uuid4
-
 import streamlit as st
 from streamlit_flow import streamlit_flow
-from streamlit_flow.elements import StreamlitFlowEdge, StreamlitFlowNode
-from streamlit_flow.layouts import RadialLayout, TreeLayout
-from streamlit_flow.state import StreamlitFlowState
+from streamlit_flow.layouts import TreeLayout
 
-
-def initialize_tree() -> None:
-    """Initialize a default tree structure in the session state."""
-    if "curr_state" not in st.session_state:
-        nodes = [
-            StreamlitFlowNode(
-                id="0",
-                pos=(0, 0),
-                data={"content": "Root", "level": 0},
-                node_type="input",
-                source_position="bottom",
-            ),
-            StreamlitFlowNode(
-                id="1",
-                pos=(1, 0),
-                data={"content": "Left-1", "level": 1},
-                node_type="default",
-                source_position="bottom",
-                target_position="top",
-            ),
-            StreamlitFlowNode(
-                id="2",
-                pos=(2, 0),
-                data={"content": "Right-1", "level": 1},
-                node_type="default",
-                source_position="bottom",
-                target_position="top",
-            ),
-        ]
-
-        edges = [
-            StreamlitFlowEdge(
-                "0-1",
-                "0",
-                "1",
-                animated=True,
-                marker_start={},
-                marker_end={"type": "arrow"},
-            ),
-            StreamlitFlowEdge("0-2", "0", "2", animated=True),
-        ]
-
-        st.session_state.curr_state = StreamlitFlowState(nodes, edges)
-
-
-def split_selected_node() -> None:
-    """Split the selected node into two new nodes when the button is pressed."""
-    if st.button("Split selected node"):
-        selected_node = st.session_state.curr_state.get_node_by_id(
-            st.session_state.curr_state.selected_id
-        )
-        if selected_node is None:
-            return
-
-        left_node = StreamlitFlowNode(
-            str(f"st-flow-node_{uuid4()}"),
-            (0, 0),
-            {"content": "Left node"},
-            node_type="default",
-            source_position="bottom",
-            target_position="top",
-        )
-        right_node = StreamlitFlowNode(
-            str(f"st-flow-node_{uuid4()}"),
-            (0, 0),
-            {"content": "Right node"},
-            node_type="default",
-            source_position="bottom",
-            target_position="top",
-        )
-
-        st.session_state.curr_state.nodes.extend([left_node, right_node])
-        st.session_state.curr_state.edges.extend(
-            [
-                StreamlitFlowEdge(
-                    f"{selected_node.id}-{left_node.id}",
-                    selected_node.id,
-                    left_node.id,
-                    animated=True,
-                ),
-                StreamlitFlowEdge(
-                    f"{selected_node.id}-{right_node.id}",
-                    selected_node.id,
-                    right_node.id,
-                    animated=True,
-                ),
-            ],
-        )
-        st.rerun()
-
-
-def delete_selected_node() -> None:
-    """Delete the selected node when the button is pressed."""
-    if st.button("Delete Selected Node"):
-        id_to_delete = st.session_state.curr_state.selected_id
-        st.session_state.curr_state.nodes = [
-            node for node in st.session_state.curr_state.nodes if node.id != id_to_delete
-        ]
-        st.session_state.curr_state.edges = [
-            edge
-            for edge in st.session_state.curr_state.edges
-            if id_to_delete not in (edge.source, edge.target)
-        ]
-        st.rerun()
+from trees.ui.data import load_data
+from trees.ui.node import delete_selected_node, split_selected_node
+from trees.ui.tree import initialize_tree
 
 
 def main():
     st.set_page_config("Streamlit Flow Example", layout="wide")
     st.title("Streamlit Flow Example")
     initialize_tree()
+    st.session_state.dataset = load_data("diabetes")
 
     st.session_state.curr_state = streamlit_flow(
-        "example_flow",
-        st.session_state.curr_state,
+        key="example_flow",
+        state=st.session_state.curr_state,
         layout=TreeLayout(direction="down"),
         fit_view=True,
         height=500,
