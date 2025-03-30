@@ -1,5 +1,7 @@
 """Helpers for keeping track of session state in streamlit."""
 
+import time
+
 import streamlit as st
 from streamlit_flow.elements import StreamlitFlowEdge, StreamlitFlowNode
 from streamlit_flow.state import StreamlitFlowState
@@ -64,3 +66,4 @@ def update_session_state(tree: Tree) -> None:
     flow_nodes = get_flownodes_from_nodes(st.session_state.tree.nodes)
     flow_edges = get_edges_from_nodes(st.session_state.tree.nodes)
     st.session_state.curr_state = StreamlitFlowState(flow_nodes, flow_edges)
+    time.sleep(0.5)

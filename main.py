@@ -1,7 +1,6 @@
 import streamlit as st
 from streamlit_flow import streamlit_flow
 from streamlit_flow.layouts import TreeLayout
-
 from trees.ui.data import load_data
 from trees.ui.node import delete_selected_node, split_selected_node
 from trees.ui.tree import initialize_tree
@@ -38,18 +37,18 @@ def main():
     with col2:
         delete_selected_node()
 
-    # col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns(3)
 
-    # with col1:
-    #     for node in st.session_state.curr_state.nodes:
-    #         st.write(node)
+    with col1:
+        for node in st.session_state.curr_state.nodes:
+            st.write(node)
 
-    # with col2:
-    #     for edge in st.session_state.curr_state.edges:
-    #         st.write(edge)
+    with col2:
+        for edge in st.session_state.curr_state.edges:
+            st.write(edge)
 
-    # with col3:
-    #     st.write(st.session_state.curr_state.selected_id)
+    with col3:
+        st.write(st.session_state.curr_state.selected_id)
 
 
 if __name__ == "__main__":

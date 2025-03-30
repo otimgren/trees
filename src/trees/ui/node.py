@@ -21,6 +21,7 @@ def split_selected_node() -> None:
     )
     submitted = st.button("Split selected node")
     if submitted:
+        print("submitted")
         if selected_id is None:
             return
         st.session_state.tree.split_node(selected_id, feature_name, threshold)
