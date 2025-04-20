@@ -8,12 +8,15 @@ dependencies = [
     "polars>=1.26.0",
     "streamlit>=1.42.2",
     "streamlit-flow-component>=1.6.1",
+    "watchdog>=6.0.0",
 ]
 
 [dependency-groups]
 dev = [
     "jupyterlab>=4.3.6",
+    "ipython",
 ]
 
 [tool.ruff]
 line-length = 100
+ignore = ["COM812"]

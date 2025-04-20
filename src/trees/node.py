@@ -4,6 +4,8 @@ import uuid
 from dataclasses import dataclass
 from typing import Self
 
+from trees.data.dataset import Dataset
+
 
 @dataclass
 class Node:
@@ -16,7 +18,7 @@ class Node:
     feature_name: str | None = None
     threshold: float | None = None
     train_ids: list[str] | None = None
-    logp: float | None = None
+    logodds: float = float("nan")
 
     @property
     def is_root(self) -> bool:
@@ -59,6 +61,7 @@ class Node:
         threshold: float,
         left_id: str | None = None,
         right_id: str | None = None,
+        dataset: Dataset | None = None,
     ) -> None:
         """Split the node based on feature and threshold."""
         if self.is_split:
@@ -72,18 +75,37 @@ class Node:
 
         self.feature_name = feature_name
         self.threshold = threshold
-        self.left_child = Node(id=left_id, parent=self)
-        self.right_child = Node(id=right_id, parent=self)
+        left_dataset = (
+            dataset.filter_to_below_threshold(feature_name, threshold)
+            + dataset.filter_to_nulls(feature_name)
+            if dataset
+            else None
+        )
+        right_dataset = (
+            dataset.filter_to_above_or_at_threshold(feature_name, threshold) if dataset else None
+        )
+        self.left_child = Node(
+            id=left_id,
+            parent=self,
+            train_ids=left_dataset.ids if left_dataset else None,
+            logodds=left_dataset.get_logodds() if left_dataset else None,
+        )
+        self.right_child = Node(
+            id=right_id,
+            parent=self,
+            train_ids=right_dataset.ids if right_dataset else None,
+            logodds=right_dataset.get_logodds() if right_dataset else None,
+        )
 
     def predict(self) -> float:
         """Predict the output for given features."""
         if not self.is_leaf:
             msg = "Cannot predict on a non-leaf node."
             raise ValueError(msg)
-        if self.logp is None:
-            msg = "Log probability not set for leaf node."
+        if self.logodds is None:
+            msg = "Log odds not set for leaf node."
             raise ValueError(msg)
-        return self.logp
+        return self.logodds
 
     def find_next(self, features: dict[str, float]) -> Self | None:
         """Find the next node to traverse based on features."""

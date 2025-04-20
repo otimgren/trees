@@ -1,8 +1,9 @@
 import streamlit as st
 from streamlit_flow import streamlit_flow
 from streamlit_flow.layouts import TreeLayout
-from trees.ui.data import load_data
+
 from trees.ui.node import delete_selected_node, split_selected_node
+from trees.ui.session_state import SessionState
 from trees.ui.tree import initialize_tree
 
 
@@ -10,11 +11,10 @@ def main():
     st.set_page_config("Streamlit Flow Example", layout="wide")
     st.title("Streamlit Flow Example")
     initialize_tree()
-    st.session_state.dataset = load_data("diabetes")
 
-    st.session_state.curr_state = streamlit_flow(
-        key="example_flow",
-        state=st.session_state.curr_state,
+    SessionState().curr_state = streamlit_flow(
+        key="streamlit_flow_tree",
+        state=SessionState().flow_state,
         layout=TreeLayout(direction="down"),
         fit_view=True,
         height=500,
@@ -40,15 +40,15 @@ def main():
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        for node in st.session_state.curr_state.nodes:
+        for node in SessionState().curr_state.nodes:
             st.write(node)
 
     with col2:
-        for edge in st.session_state.curr_state.edges:
+        for edge in SessionState().curr_state.edges:
             st.write(edge)
 
     with col3:
-        st.write(st.session_state.curr_state.selected_id)
+        st.write(SessionState().curr_state.selected_id)
 
 
 if __name__ == "__main__":

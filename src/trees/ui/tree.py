@@ -4,18 +4,26 @@ import streamlit as st
 
 from trees.node import Node
 from trees.tree import Tree
-from trees.ui.session_state import update_session_state
+from trees.ui.data import load_data
+from trees.ui.session_state import SessionState, update_session_state
 
 
 def initialize_tree() -> None:
     """Initialize a default tree structure in the session state."""
-    if "tree" not in st.session_state:
-        root_node = Node(id="root", parent=None)
+    should_reset = st.button("Reset")
+    if not SessionState().is_initialized or should_reset:
+        dataset = load_data("diabetes")
+        root_node = Node(
+            id="root",
+            parent=None,
+            logodds=dataset.get_logodds(),
+            train_ids=dataset.ids,
+        )
         tree = Tree(
             nodes=[
                 root_node,
             ],
             root=root_node,
+            dataset=dataset,
         )
-        # tree.split_node("root", "feature_name", 0.5)
         update_session_state(tree)
