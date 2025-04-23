@@ -88,13 +88,13 @@ class Node:
             id=left_id,
             parent=self,
             train_ids=left_dataset.ids if left_dataset else None,
-            logodds=left_dataset.get_logodds() if left_dataset else None,
+            logodds=left_dataset.get_logodds() if left_dataset else float("nan"),
         )
         self.right_child = Node(
             id=right_id,
             parent=self,
             train_ids=right_dataset.ids if right_dataset else None,
-            logodds=right_dataset.get_logodds() if right_dataset else None,
+            logodds=right_dataset.get_logodds() if right_dataset else float("nan"),
         )
 
     def predict(self) -> float:
@@ -102,12 +102,12 @@ class Node:
         if not self.is_leaf:
             msg = "Cannot predict on a non-leaf node."
             raise ValueError(msg)
-        if self.logodds is None:
+        if self.logodds is float("nan"):
             msg = "Log odds not set for leaf node."
             raise ValueError(msg)
         return self.logodds
 
-    def find_next(self, features: dict[str, float]) -> Self | None:
+    def find_next(self, features: dict[str, float]) -> "Node | None":
         """Find the next node to traverse based on features."""
         if self.is_leaf:
             return None

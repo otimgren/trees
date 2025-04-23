@@ -12,7 +12,7 @@ def find_threshold_candidates(feature_values: pl.Series) -> pl.Series:
     return feature_values.unique().sort().rolling_median(window_size=2).drop_nulls()
 
 
-def calculate_gini_impurity(feature_values: pl.Series, threshold: float) -> float:
+def calculate_gini_impurity(feature_values: pl.Series[float], threshold: float) -> float:
     """Calculate the Gini coefficient if the feature is split to two categories at threshold."""
     classes = feature_values > threshold
     return classes.mean() * (1 - classes.mean())
