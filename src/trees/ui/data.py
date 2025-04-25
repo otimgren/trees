@@ -3,13 +3,17 @@
 import streamlit as st
 
 from trees.data import diabetes
-from trees.data.dataset import Dataset
+from trees.df import DataFrame
 
 
-def load_data(dataset_name: str) -> Dataset:
+def load_data(dataset_name: str) -> DataFrame:
     """Load the specified dataset."""
     if dataset_name == "diabetes":
-        return Dataset(df=diabetes.load_raw_data(), target_col="Outcome")
+        return DataFrame.from_polars(
+            df=diabetes.load_raw_data().with_row_index(),
+            id_col_name="index",
+            label_col_name="Outcome",
+        )
 
     msg = f"Dataset {dataset_name} not recognized."
     raise ValueError(msg)

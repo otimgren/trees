@@ -17,13 +17,13 @@ def initialize_tree() -> None:
             id="root",
             parent=None,
             logodds=dataset.get_logodds(),
-            train_ids=dataset.ids,
+            data_ids=dataset.ids,
         )
         tree = Tree(
             nodes=[
                 root_node,
             ],
             root=root_node,
-            dataset=dataset,
+            df=dataset,
         )
         update_session_state(tree)

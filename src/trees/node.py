@@ -1,10 +1,10 @@
 """Tree nodes."""
 
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Self
 
-from trees.data.dataset import Dataset
+from trees.df import DataFrame
 
 
 @dataclass
@@ -15,9 +15,9 @@ class Node:
     parent: "Node | None"
     left_child: "Node | None" = None
     right_child: "Node | None" = None
-    feature_name: str | None = None
-    threshold: float | None = None
-    train_ids: list[str] | None = None
+    feature_name: str = ""
+    threshold: float = float("nan")
+    data_ids: list[str] = field(default_factory=list)
     logodds: float = float("nan")
 
     @property
@@ -61,7 +61,7 @@ class Node:
         threshold: float,
         left_id: str | None = None,
         right_id: str | None = None,
-        dataset: Dataset | None = None,
+        df: DataFrame | None = None,
     ) -> None:
         """Split the node based on feature and threshold."""
         if self.is_split:
@@ -75,26 +75,21 @@ class Node:
 
         self.feature_name = feature_name
         self.threshold = threshold
-        left_dataset = (
-            dataset.filter_to_below_threshold(feature_name, threshold)
-            + dataset.filter_to_nulls(feature_name)
-            if dataset
-            else None
+        left_dataset = df.filter_to_below_threshold(feature_name, threshold) + df.filter_to_nulls(
+            feature_name
         )
-        right_dataset = (
-            dataset.filter_to_above_or_at_threshold(feature_name, threshold) if dataset else None
-        )
+        right_dataset = df.filter_to_above_or_at_threshold(feature_name, threshold)
         self.left_child = Node(
             id=left_id,
             parent=self,
-            train_ids=left_dataset.ids if left_dataset else None,
-            logodds=left_dataset.get_logodds() if left_dataset else float("nan"),
+            data_ids=left_dataset.ids,
+            logodds=left_dataset.get_logodds(),
         )
         self.right_child = Node(
             id=right_id,
             parent=self,
-            train_ids=right_dataset.ids if right_dataset else None,
-            logodds=right_dataset.get_logodds() if right_dataset else float("nan"),
+            data_ids=right_dataset.ids,
+            logodds=right_dataset.get_logodds(),
         )
 
     def predict(self) -> float:
@@ -114,6 +109,10 @@ class Node:
         if self.threshold is None or self.feature_name is None:
             msg = "Node not split yet."
             raise ValueError(msg)
+        if self.left_child is None and self.right_child is not None:
+            return self.right_child
+        if self.left_child is not None and self.right_child is None:
+            return self.left_child
         if features[self.feature_name] < self.threshold:
             return self.left_child
         return self.right_child

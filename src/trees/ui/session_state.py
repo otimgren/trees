@@ -123,9 +123,7 @@ def get_flownode_from_node(node: Node) -> StreamlitFlowNode:
 def _get_node_content(node: Node) -> str:
     """Get the content of a node."""
     feature_part = f"{node.feature_name} <= {node.threshold:.1f}" if node.feature_name else "Leaf"
-    log_odds_part = (
-        f" (logp={node.logodds:.2f}, n={len(node.train_ids) if node.train_ids else 0:,})"
-    )
+    log_odds_part = f" (logp={node.logodds:.2f}, n={len(node.data_ids):,})"
     return f"{feature_part}{log_odds_part}"
 
 

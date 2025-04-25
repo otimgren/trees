@@ -2,9 +2,7 @@
 
 from dataclasses import dataclass
 
-from altair import Data
-
-from trees.data.dataset import Dataset
+from trees.df import DataFrame
 from trees.node import Node
 
 
@@ -14,7 +12,7 @@ class Tree:
 
     nodes: list[Node]
     root: Node
-    dataset: Dataset | None = None
+    df: DataFrame
 
     def predict(self, features: list[float]) -> float:
         """Predict the output for given features."""
@@ -40,7 +38,7 @@ class Tree:
         node.split(
             feature_name,
             threshold,
-            dataset=self.dataset.get_rows_by_ids(node.train_ids or []) if self.dataset else None,
+            df=self.df.get_rows_by_ids(node.data_ids),
         )
         if node.left_child is None or node.right_child is None:
             msg = "Failed to split node."
@@ -62,14 +60,12 @@ class Tree:
             raise ValueError(msg)
         self.nodes.remove(node)
         if not node.is_leaf and make_new_leaf:
-            combined_ids = (node.left_child.train_ids or []) + (node.right_child.train_ids or [])
+            combined_ids = (node.left_child.data_ids) + (node.right_child.data_ids)
             new_leaf = Node(
                 id=node.id,
                 parent=node.parent,
-                train_ids=combined_ids,
-                logodds=self.dataset.get_rows_by_ids(combined_ids).get_logodds()
-                if self.dataset
-                else float("nan"),
+                data_ids=combined_ids,
+                logodds=self.df.get_rows_by_ids(combined_ids).get_logodds(),
             )
             if node.parent.left_child == node:
                 node.parent.left_child = new_leaf
