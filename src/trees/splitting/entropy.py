@@ -2,13 +2,10 @@
 
 import math
 
-# import jax.numpy as np
 import numpy as np
-from jax import jit
 from numpy.typing import NDArray
 
 
-# @jit
 def calculate_entropy(
     feature_values: NDArray[np.float32], labels: NDArray[np.float32], threshold: float
 ) -> float:

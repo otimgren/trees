@@ -3,19 +3,19 @@
 from dataclasses import dataclass
 from typing import Self
 
-import jax.numpy as np
+import numpy as np
 import polars as pl
-from jax.typing import ArrayLike
+from numpy.typing import NDArray
 
 
 @dataclass
 class DataFrame:
     """Custom dataframe class."""
 
-    ids: ArrayLike
-    features: ArrayLike
+    ids: NDArray[np.int64 | np.str_]
+    features: NDArray[np.float32]
     feature_names: list[str]
-    labels: ArrayLike
+    labels: NDArray[np.float32]
     id_col_name: str
     label_col_name: str
 
@@ -36,7 +36,7 @@ class DataFrame:
             label_col_name=label_col_name,
         )
 
-    def __getitem__(self, key: str) -> ArrayLike:
+    def __getitem__(self, key: str) -> NDArray[np.float32 | np.int64 | np.str_]:
         """Get a column by its name."""
         if key in self.feature_names:
             return self.features[:, self.feature_names.index(key)]
@@ -44,9 +44,10 @@ class DataFrame:
             return self.ids
         if key == self.label_col_name:
             return self.labels
-        raise KeyError(f"Column {key} not found in dataframe.")
+        msg = f"Column {key} not found in dataframe."
+        raise KeyError(msg)
 
-    def get_rows_by_ids(self, ids: ArrayLike) -> "DataFrame":
+    def get_rows_by_ids(self, ids: NDArray[np.int64 | np.str_]) -> "DataFrame":
         """Get rows by their ids."""
         mask = np.isin(self.ids, ids)
         return DataFrame(

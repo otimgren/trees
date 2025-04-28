@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "bigtree[all]>=0.28.0",
     "jax>=0.6.0",
     "polars>=1.26.0",
     "streamlit>=1.42.2",

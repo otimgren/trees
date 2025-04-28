@@ -13,35 +13,40 @@ def initialize_tree() -> Tree:
         diabetes.load_raw_data().with_row_index(), id_col_name="index", label_col_name="Outcome"
     )
     root_node = Node(
-        id="root",
+        name="root",
         parent=None,
         logodds=dataset.get_logodds(),
         data_ids=dataset.ids,
     )
     return Tree(
-        nodes=[
-            root_node,
-        ],
         root=root_node,
         df=dataset,
     )
 
 
-def split_on_feature(tree: Tree, feature_name: str) -> None:
+def split_on_feature(node: Node, tree: Tree, feature_name: str) -> None:
     """Split the root node on the specified feature."""
-    threshold, _ = suggest_split_threshold(tree.df, feature_name)
+    _, threshold = suggest_split_threshold(tree.df.get_rows_by_ids(node.data_ids), feature_name)
     tree.split_node(
-        node_id=tree.root.id,
+        node_id=node.name,
         threshold=threshold,
         feature_name=feature_name,
     )
 
 
 def main() -> None:
-    """Main function to create and split a tree."""
+    """Create and split a tree."""
     tree = initialize_tree()
-    split_on_feature(tree, "Glucose")
-    print(tree)
+    # tree.root.show(attr_list=["n_obs", "logodds"])
+    split_on_feature(tree.root, tree, "Pregnancies")
+    left_child = tree.root.left
+    split_on_feature(left_child, tree, "BMI")
+    tree.root.show(attr_list=["n_obs", "feature_name", "threshold", "logodds"])
+
+    left_child_id = left_child.id
+    tree.delete_node(left_child_id)
+    print(f"Deleted node {left_child_id}")
+    tree.root.show(attr_list=["n_obs", "feature_name", "threshold", "logodds"])
 
 
 if __name__ == "__main__":

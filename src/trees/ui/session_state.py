@@ -112,7 +112,7 @@ def get_flownode_from_node(node: Node) -> StreamlitFlowNode:
     """Convert a Node to a StreamlitFlowNode."""
     return StreamlitFlowNode(
         node.id,
-        (-10 if node.is_left_child else 10, node.level * 10),
+        (-10 if node.is_left_child else 10, node.depth * 10),
         {"content": _get_node_content(node)},
         node_type="input" if node.is_root else "default",
         source_position="bottom",

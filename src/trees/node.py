@@ -1,61 +1,62 @@
 """Tree nodes."""
 
 import uuid
-from dataclasses import dataclass, field
+from typing import Any, TypeVar
 
-from jax import numpy as np
-from jax.typing import ArrayLike
+import numpy as np
+from bigtree.node.binarynode import BinaryNode
+from numpy.typing import NDArray
+from PIL.ImageChops import offset
 
 from trees.df import DataFrame
 
 
-@dataclass
-class Node:
+class Node(BinaryNode):
     """Tree node."""
 
-    id: str
-    parent: "Node | None"
-    left_child: "Node | None" = None
-    right_child: "Node | None" = None
-    feature_name: str = ""
-    threshold: float = float("nan")
-    data_ids: ArrayLike = field(default_factory=lambda: np.array(object=[], dtype=str))
-    logodds: float = float("nan")
+    def __init__(
+        self,
+        name: str | int,
+        parent: "Node | None" = None,
+        left: "Node | None" = None,
+        right: "Node | None" = None,
+        feature_name: str = "[feature_name]",
+        threshold: float | None = None,
+        data_ids: NDArray[np.str_ | np.int_] | None = None,
+        logodds: float | None = None,
+    ):
+        super().__init__(name=name, parent=parent, left=left, right=right)
+        self.feature_name: str = feature_name
+        self.threshold: float = threshold or float("nan")
+        self.data_ids: NDArray[np.str_ | np.int_] = (
+            np.array([], dtype=np.str_) if data_ids is None else data_ids
+        )
+        self.logodds: float = logodds or float("nan")
 
     @property
-    def is_root(self) -> bool:
-        """Check if the node is the root."""
-        return self.parent is None
-
-    @property
-    def is_leaf(self) -> bool:
-        """Check if the node is a leaf."""
-        return self.left_child is None and self.right_child is None
+    def id(self) -> str:
+        """Get the node id."""
+        return self.name
 
     @property
     def is_left_child(self) -> bool:
         """Check if the node is a left child."""
-        return self.parent is not None and self.parent.left_child == self
+        return self.parent is not None and self.parent.left is self
 
     @property
     def is_right_child(self) -> bool:
         """Check if the node is a right child."""
-        return self.parent is not None and self.parent.right_child == self
+        return self.parent is not None and self.parent.right is self
 
     @property
     def is_split(self) -> bool:
         """Check if the node is split."""
-        return self.left_child is not None or self.right_child is not None
+        return self.left is not None or self.right is not None
 
     @property
-    def level(self) -> int:
-        """Get the level of the node in the tree."""
-        level = 0
-        current_node = self
-        while current_node.parent is not None:
-            level += 1
-            current_node = current_node.parent
-        return level
+    def n_obs(self) -> int:
+        """Get the number of observations in the node."""
+        return len(self.data_ids)
 
     def split(
         self,
@@ -82,14 +83,14 @@ class Node:
             feature_name
         )
         right_dataset = df.filter_to_above_or_at_threshold(feature_name, threshold)
-        self.left_child = Node(
-            id=left_id,
+        self.left: Node = Node(
+            name=left_id,
             parent=self,
             data_ids=left_dataset.ids,
             logodds=left_dataset.get_logodds(),
         )
-        self.right_child = Node(
-            id=right_id,
+        self.right: Node = Node(
+            name=right_id,
             parent=self,
             data_ids=right_dataset.ids,
             logodds=right_dataset.get_logodds(),
@@ -104,18 +105,3 @@ class Node:
             msg = "Log odds not set for leaf node."
             raise ValueError(msg)
         return self.logodds
-
-    def find_next(self, features: dict[str, float]) -> "Node | None":
-        """Find the next node to traverse based on features."""
-        if self.is_leaf:
-            return None
-        if self.threshold is None or self.feature_name is None:
-            msg = "Node not split yet."
-            raise ValueError(msg)
-        if self.left_child is None and self.right_child is not None:
-            return self.right_child
-        if self.left_child is not None and self.right_child is None:
-            return self.left_child
-        if features[self.feature_name] < self.threshold:
-            return self.left_child
-        return self.right_child

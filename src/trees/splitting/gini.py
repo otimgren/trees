@@ -1,8 +1,6 @@
 """Splitting based on Gini impurity."""
 
-# import jax.numpy as np
 import numpy as np
-from jax import jit
 from numpy.typing import NDArray
 
 
@@ -12,6 +10,8 @@ def calculate_gini_impurity(
 ) -> float:
     """Calculate the Gini coefficient if the feature is split to two categories at threshold."""
     mask = feature_values > threshold
+    if mask.sum() == 0 or mask.sum() == len(mask):
+        return 1
     p = (labels * mask).sum() / mask.sum()
     return p * (1 - p)
 
