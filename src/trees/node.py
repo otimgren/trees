@@ -2,7 +2,9 @@
 
 import uuid
 from dataclasses import dataclass, field
-from typing import Self
+
+from jax import numpy as np
+from jax.typing import ArrayLike
 
 from trees.df import DataFrame
 
@@ -17,7 +19,7 @@ class Node:
     right_child: "Node | None" = None
     feature_name: str = ""
     threshold: float = float("nan")
-    data_ids: list[str] = field(default_factory=list)
+    data_ids: ArrayLike = field(default_factory=lambda: np.array(object=[], dtype=str))
     logodds: float = float("nan")
 
     @property
@@ -59,9 +61,10 @@ class Node:
         self,
         feature_name: str,
         threshold: float,
+        df: DataFrame,
+        *,
         left_id: str | None = None,
         right_id: str | None = None,
-        df: DataFrame | None = None,
     ) -> None:
         """Split the node based on feature and threshold."""
         if self.is_split:
